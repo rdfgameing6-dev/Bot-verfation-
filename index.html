@@ -409,27 +409,8 @@ body {
     }
 }
 
-/* Verification failure state */
-.status-indicator.failed {
-    border-color: #ff3b4f;
-    background: #300b16;
-    color: #ff5968;
-}
-.status-indicator.failed .status-dot {
-    background: #ff3048;
-    box-shadow: 0 0 10px #ff3048;
-}
-.status-indicator.success {
-    border-color: #19d98b;
-    background: #062a21;
-    color: #48ffc0;
-}
-.status-indicator.success .status-dot {
-    background: #19d98b;
-    box-shadow: 0 0 10px #19d98b;
-}
+/* START BOT BUTTON: CENTERED AND FULLY VISIBLE */
 
-/* START BOT BUTTON: hidden until the server confirms verification */
 .start-wrap {
     position: absolute;
     z-index: 20;
@@ -446,10 +427,6 @@ body {
     justify-content: center;
     padding: 0 22px;
     text-align: center;
-    display: none;
-}
-.start-wrap.visible {
-    display: flex;
 }
 
 .start-btn {
@@ -754,7 +731,7 @@ body {
             ADVANCED FIGHTER SCANNER
         </div>
 
-        <div class="status-indicator" id="statusIndicator">
+        <div class="status-indicator">
             <span class="status-dot"></span>
             <span id="statusText">FIGHTER JET APPROACHING</span>
         </div>
@@ -768,9 +745,10 @@ body {
         <a
             class="start-btn"
             id="startBot"
-            href="https://t.me/YOUR_BOT_USERNAME"
+            href="https://t.me/Bitcoinbbbot"
             target="_blank"
             rel="noopener noreferrer"
+            style="display:none"
         >
             <span class="btn-icon">▶</span>
             <span>START BOT</span>
@@ -784,116 +762,137 @@ body {
 const fighter = document.getElementById("fighter");
 const logoArea = document.getElementById("logoArea");
 const verified = document.getElementById("verified");
+
 const statusText = document.getElementById("statusText");
 const statusSubtitle = document.getElementById("statusSubtitle");
-const statusIndicator = document.getElementById("statusIndicator");
-const startWrap = document.querySelector(".start-wrap");
+const startBot = document.getElementById("startBot");
 
-/*
-  IMPORTANT:
-  Set this to your own HTTPS backend endpoint. The backend must validate a
-  signed, one-time session and return JSON: {"verified": true} only when the
-  user really passed verification. Do not make the endpoint return true just
-  because this animation finished.
-*/
-const VERIFY_API_URL = "https://YOUR_DOMAIN/verify";
-const BOT_USERNAME = "YOUR_BOT_USERNAME";
-document.getElementById("startBot").href = "https://t.me/" + BOT_USERNAME;
+// Replace this placeholder with your deployed backend URL (no trailing slash).
+const API_BASE_URL = "https://bot-verfation-1.onrender.com";
+const params = new URLSearchParams(window.location.search);
+const verificationUserId = params.get("uid");
+const verificationToken = params.get("token");
+let backendVerified = false;
 
-function setStatus(text, subtitle, state = "") {
-    statusText.textContent = text;
-    statusSubtitle.textContent = subtitle;
-    statusIndicator.classList.remove("failed", "success");
-    if (state) statusIndicator.classList.add(state);
-}
-
-function showFailure(message = "VERIFICATION FAILED") {
-    startWrap.classList.remove("visible");
-    verified.classList.remove("show");
-    setStatus(message, "PLEASE TRY AGAIN OR CONTACT SUPPORT", "failed");
-}
-
-async function checkRealVerification() {
-    const session = new URLSearchParams(window.location.search).get("session");
-
-    if (!session || VERIFY_API_URL.includes("YOUR_DOMAIN")) {
-        showFailure("VERIFICATION FAILED");
+async function completeWebsiteVerification() {
+    if (!verificationUserId || !verificationToken) {
+        statusText.textContent = "OPEN FROM TELEGRAM BOT";
+        statusSubtitle.textContent = "NO SIGNED VERIFICATION SESSION";
         return;
     }
-
-    setStatus("CHECKING VERIFICATION", "CONFIRMING WITH SECURE SERVER");
+    if (API_BASE_URL.includes("YOUR-BACKEND-SERVICE")) {
+        statusText.textContent = "SERVER NOT CONNECTED";
+        statusSubtitle.textContent = "BACKEND URL NEEDS SETUP";
+        return;
+    }
+    statusText.textContent = "CHECKING VERIFICATION";
+    statusSubtitle.textContent = "CONTACTING SECURE SERVER";
     try {
-        const response = await fetch(VERIFY_API_URL, {
+        const response = await fetch(API_BASE_URL + "/api/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session }),
-            cache: "no-store"
+            body: JSON.stringify({ user_id: verificationUserId, token: verificationToken })
         });
-
-        if (!response.ok) throw new Error("Verification server error");
         const result = await response.json();
-
-        if (result && result.verified === true) {
-            setStatus("VERIFICATION COMPLETE", "SERVER CONFIRMED · YOU CAN START THE BOT", "success");
-            verified.textContent = "✦ VERIFICATION COMPLETE ✦";
-            verified.classList.remove("show");
-            void verified.offsetWidth;
-            verified.classList.add("show");
-            startWrap.classList.add("visible");
-        } else {
-            showFailure("VERIFICATION FAILED");
-        }
+        if (!response.ok || result.verified !== true) throw new Error(result.detail || "Verification failed");
+        backendVerified = true;
+        statusText.textContent = "VERIFICATION COMPLETED";
+        statusSubtitle.textContent = "SERVER CONFIRMED · RETURN TO BOT";
+        startBot.style.display = "inline-flex";
     } catch (error) {
-        showFailure("VERIFICATION FAILED");
+        statusText.textContent = "VERIFICATION FAILED";
+        statusSubtitle.textContent = "SERVER CHECK FAILED · TRY AGAIN";
+        startBot.style.display = "none";
     }
 }
 
 /* CREATE STARS */
+
 const stars = document.getElementById("stars");
+
 for (let i = 0; i < 65; i++) {
     const star = document.createElement("span");
+
     star.className = "star";
     star.style.left = Math.random() * 100 + "%";
     star.style.top = Math.random() * 100 + "%";
     star.style.animationDelay = Math.random() * 3 + "s";
-    star.style.animationDuration = (1 + Math.random() * 3) + "s";
+    star.style.animationDuration =
+        (1 + Math.random() * 3) + "s";
+
     stars.appendChild(star);
 }
 
-/* The jet animation is decorative only; the server decides verification. */
+/*
+ANIMATION TIMING
+
+0.0 sec: Jet enters from below.
+2.86 sec: Jet reaches logo; scan starts.
+2.86–10.86 sec: Eight-second scan.
+10.86 sec: Scan completed.
+11.1 sec: Jet departs.
+13.0 sec: Next cycle starts.
+*/
+
 let timers = [];
+
 function later(callback, delay) {
     timers.push(setTimeout(callback, delay));
 }
 
 function startScan() {
+
     timers.forEach(clearTimeout);
     timers = [];
+
     fighter.classList.remove("run");
     logoArea.classList.remove("scanning");
     verified.classList.remove("show");
-    startWrap.classList.remove("visible");
-    setStatus("FIGHTER JET APPROACHING", "ENTERING FROM BELOW");
+
+    statusText.textContent = "FIGHTER JET APPROACHING";
+    statusSubtitle.textContent = "ENTERING FROM BELOW";
 
     void fighter.offsetWidth;
+
     fighter.classList.add("run");
 
+    /* Begin scan */
+
     later(() => {
-        setStatus("SCANNING LOGO", "SCAN IN PROGRESS · 8 SECONDS");
+
+        statusText.textContent = "SCANNING LOGO";
+        statusSubtitle.textContent = "SCAN IN PROGRESS · 8 SECONDS";
+
         logoArea.classList.add("scanning");
+
     }, 2860);
 
-    later(async () => {
-        setStatus("SCAN FINISHED · CHECKING", "WAITING FOR SECURE VERIFICATION");
-        await checkRealVerification();
-    }, 10860);
+    /* Scan complete */
 
     later(() => {
-        if (!startWrap.classList.contains("visible") &&
-            !statusIndicator.classList.contains("failed")) {
-            setStatus("VERIFICATION PENDING", "WAITING FOR SERVER CONFIRMATION");
-        }
+
+        statusText.textContent = "SCAN COMPLETED";
+        statusSubtitle.textContent = "CONFIRMING WITH SERVER";
+
+        verified.classList.remove("show");
+        void verified.offsetWidth;
+        verified.classList.add("show");
+        completeWebsiteVerification();
+
+    }, 10860);
+
+    /* Jet departure */
+
+    later(() => {
+
+        statusText.textContent = "FIGHTER JET DEPARTING";
+        statusSubtitle.textContent = "MISSION COMPLETED";
+
     }, 11100);
+
+    /* Restart automatically */
+
+    later(startScan, 13000);
 }
 
 startScan();
