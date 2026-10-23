@@ -718,7 +718,7 @@ body {
     <!-- NO VERTICAL LASER ELEMENT -->
 
     <div class="verified" id="verified">
-        ✦ LOGO SCANNED ✦
+        ✦ USER ID VALIDATED ✦
     </div>
 
     <!-- BLUE STATUS TEXT -->
@@ -728,12 +728,12 @@ body {
         <div class="status-title">SHIV KE BOTZ</div>
 
         <div class="status-subtitle" id="statusSubtitle">
-            ADVANCED FIGHTER SCANNER
+            TELEGRAM USER ID CHECK
         </div>
 
         <div class="status-indicator">
             <span class="status-dot"></span>
-            <span id="statusText">FIGHTER JET APPROACHING</span>
+            <span id="statusText">WAITING FOR USER ID CHECK</span>
         </div>
 
     </section>
@@ -849,7 +849,7 @@ function startScan() {
     logoArea.classList.remove("scanning");
     verified.classList.remove("show");
 
-    statusText.textContent = "FIGHTER JET APPROACHING";
+    statusText.textContent = "VALIDATING TELEGRAM USER ID";
     statusSubtitle.textContent = "ENTERING FROM BELOW";
 
     void fighter.offsetWidth;
@@ -860,8 +860,8 @@ function startScan() {
 
     later(() => {
 
-        statusText.textContent = "SCANNING LOGO";
-        statusSubtitle.textContent = "SCAN IN PROGRESS · 8 SECONDS";
+        statusText.textContent = "VALIDATING TELEGRAM USER ID";
+        statusSubtitle.textContent = "CHECKING SIGNED USER SESSION · 8 SECONDS";
 
         logoArea.classList.add("scanning");
 
@@ -871,8 +871,8 @@ function startScan() {
 
     later(() => {
 
-        statusText.textContent = "SCAN COMPLETED";
-        statusSubtitle.textContent = "CONFIRMING WITH SERVER";
+        statusText.textContent = "USER SESSION CHECK COMPLETE";
+        statusSubtitle.textContent = "CONFIRMING SIGNED SESSION WITH SERVER";
 
         verified.classList.remove("show");
         void verified.offsetWidth;
@@ -886,7 +886,7 @@ function startScan() {
     later(() => {
 
         statusText.textContent = "FIGHTER JET DEPARTING";
-        statusSubtitle.textContent = "MISSION COMPLETED";
+        statusSubtitle.textContent = "SERVER RESULT REQUIRED";
 
     }, 11100);
 
