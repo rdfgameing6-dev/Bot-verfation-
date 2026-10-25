@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-VERIFY_SECRET = os.getenv("VERIFY_SECRET", "").strip()
+VERIFY_SECRET = os.getenv("VERIFY_SECRET", "BbVerify_7xP9mK2vR8qL5nW4zT6h").strip()
 DB_PATH = os.getenv("VERIFY_DB_PATH", "verification_status.db")
 
 app = FastAPI(title="Bitcoinbb Verification API", version="1.0.0")
